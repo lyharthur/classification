@@ -205,7 +205,7 @@ if __name__ == '__main__':
 
 ##            o.write(row['total_children']+'\t')
 ##            o.write(row['num_children_at_home']+'\t')
-            
+            #o.write(row['education']+'\t')
             if int(row['total_children']) <=5 :
                 o.write('total_children_low'+'\t')
             else:
@@ -215,9 +215,11 @@ if __name__ == '__main__':
                 o.write('at_home_low'+'\t')
             else:
                 o.write('at_home_high'+'\t')
-
             
-            o.write(row['education']+'\t') 
+            if row['education'] == 'Partial High School' or row['education'] == 'High School Degree' or row['education'] == 'Partial College':
+                o.write('non_college'+'\t')
+            else:
+                o.write('college'+'\t')
             o.write(row['member_card']+'\n')#target
         
         if count > 10281*0.70:
