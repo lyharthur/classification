@@ -1,0 +1,15 @@
+rain	cool	normal	true	no
+over	cool	normal	true	yes
+sunny	mild	high	false	no
+sunny	cool	normal	false	yes
+rain	mild	normal	false	yes
+sunny	mild	normal	true	yes
+over	mild	high	true	yes
+over	hot	normal	false	yes
+rain	mild	high	true	no
+sunny	mild	normal	false	no
+sunny	hot	high	false	no
+rain	cool	normal	false	yes
+sunny	hot	high	true	no
+over	hot	high	false	yes
+rain	mild	high	false	yes
