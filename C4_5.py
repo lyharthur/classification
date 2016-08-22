@@ -144,7 +144,7 @@ class Tree:
             def check_node(root,dataline):
                 if root.child:
                     for node in root.child:
-                        print(node.value,dataline)
+                        #print(node.value,dataline)
                         if node.value in dataline:
                            return check_node(node,dataline)
                                
@@ -177,35 +177,55 @@ if __name__ == '__main__':
     for row in csv.DictReader(f):
         count += 1
         def train_test(o):
+            #o.write(row['customer_id']+'\t')
             #o.write(row['city']+'\t')
             #o.write(row['state_province']+'\t')
-            o.write(row['country']+'\t')
+            #o.write(row['country']+'\t')
             #o.write(row['customer_region_id']+'\t')
+            #o.write(row['age']+'\t')
+            #o.write(row['year_income']+'\t')
             
-            o.write(row['marital_status']+'\t')
-            #o.write('t'+row['total_children']+'\t')
-            #o.write('h'+row['num_children_at_home']+'\t')
-            o.write(row['education']+'\t')
-            
-            if int(row['age']) < 40:#row['age']
+            if int(row['age']) < 45:#row['age']
                 o.write('~40'+'\t')
-            elif int(row['age'])>= 40 and int(row['age']) < 60:
-                o.write('40~60'+'\t')
+            elif int(row['age'])>= 45 and int(row['age']) < 80:
+                o.write('40~80'+'\t')
             else:
-                o.write('60~'+'\t')
+                o.write('80~'+'\t')
                 
-            if int(row['year_income']) <= 40000:#row['year_income']
-                o.write('~4w'+'\t')
-            elif int(row['year_income'])> 40000 and int(row['year_income']) >= 100000:
-                o.write('4w~10w'+'\t')
+            if int(row['year_income']) <= 20000:#row['year_income']
+                o.write('low_income'+'\t')
+            elif int(row['year_income'])> 20000 and int(row['year_income']) >= 100000:
+                o.write('mid_income'+'\t')
             else:
-                o.write('10w~'+'\t')
+                o.write('high_income'+'\t')
+
             
+            o.write(row['gender']+'\t')
+            o.write(row['marital_status']+'\t')
+
+##            o.write(row['total_children']+'\t')
+##            o.write(row['num_children_at_home']+'\t')
+            
+            if int(row['total_children']) <=5 :
+                o.write('total_children_low'+'\t')
+            else:
+                o.write('total_children_high'+'\t')
+                
+            if int(row['num_children_at_home']) <=2 :
+                o.write('at_home_low'+'\t')
+            else:
+                o.write('at_home_high'+'\t')
+
+            
+            o.write(row['education']+'\t') 
             o.write(row['member_card']+'\n')#target
-        if count < 8224:
-            train_test(train)
-        else:
+        
+        if count > 10281*0.70:
             train_test(test)
+            #train_test(train)
+        else:    
+            train_test(train)
+            
             
         n.write(row["customer_id"]+'\t'+row["account_num"]+'\t'+
                 row["lname"]+'\t'+row["fname"]+'\t'+row["address"]+'\t'+row["city"]+'\t'+row["state_province"]+'\t'+
