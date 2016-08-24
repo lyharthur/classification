@@ -1,14 +1,15 @@
 import math
 import argparse
 import csv
+import time
 
 
 class Node:
     """
-    C45的决策树结点，每个结点需要包含以下信息：
-    1. 这个结点可以使用哪些属性来分裂；
-    2. 这个结点的子树包含了哪些样例；
-    3. 这个结点本身是由父结点的哪个属性分裂来的，它的属性值是什么。
+    C45 Tree node's attribute ：
+    1. use which attribute
+    2. subTree has which attribute
+    3. parent attribute
     """
     def __init__(self, select_row, attribute, parent_a, value):
         self.sample = select_row
@@ -20,11 +21,13 @@ class Node:
 
 class Tree:
     """
-    C45的决策树，有一个分裂函数，一个构造函数。
-    分裂函数的参数是一个结点，这个结点要求至少有两个属性和，它计算出每一个可用属性的增益，用最高的属性进行分裂，
-    构造子节点。
-    构造函数，从根节点开始，除非classify出来的字典只有一个元素，或者已经没有属性
-    可以用来分裂了。
+    C45 Tree
+    built
+    split info 
+    entropy ,condtion entropy ,gain
+    Test
+    output,print Tree
+    
     """
 
     def __init__(self, data):
@@ -43,19 +46,20 @@ class Tree:
             return res
         for attr in node.attribute:
             e_s = self.entropy(node.sample)
+            print(e_s,'e_s')
             if e_s == 0:
                 return res
-            d = self.classify(node.sample, attr)
+            d = self.classify(node.sample, attr) #attribute classify  return dict
             c = self.conditional_entropy(node.sample, d)
             if c[1] != 0:   ## HERE!
-                gain_ratio = (e_s - c[0]) / c[1]
-                #print(gain_ratio,gain_max)
+                gain_ratio = (e_s - c[0]) / c[1] #Gain_ratio = (Entropy - condition Entropy) / split info
+                print(attr ,(e_s ,c[0]), c[1],gain_ratio,gain_max)
                 if gain_ratio >= gain_max:
                     gain_max = gain_ratio
                     gain_max_attr = attr
                     gain_max_dict = d
             else:
-                #print(attr,'max')
+                print(attr,'max')
                 gain_max_attr = attr
                 gain_max_dict = d
                 break
@@ -84,9 +88,24 @@ class Tree:
                 sample[key] = 1
         entropy_s = 0
         for k in sample:
+            print(sample,sample[k],k,len(index_list))
             entropy_s += -(sample[k] / len(index_list)) * math.log2(sample[k] / len(index_list))
+        print(entropy_s,'in_e')
         return entropy_s
+    
+    def conditional_entropy(self, select_row, d):
+        c_e = 0
+        total = len(select_row)
+        split_info = 0
+        
+        for k in d:
+            c_e += (len(d[k]) / total) * self.entropy(d[k])
+            print(c_e,'inc_e',k)
 
+            split_info += (len(d[k]) / total) * math.log2((len(d[k]) / total))
+            
+        #print(c_e,-split_info)
+        return (c_e, -split_info)
     
     def classify(self, select_row, column):
         res = {}
@@ -98,15 +117,7 @@ class Tree:
                 res[key] = [index]
         return res
 
-    def conditional_entropy(self, select_row, d):
-        c_e = 0
-        total = len(select_row)
-        split_info = 0
-        for k in d:
-            c_e += (len(d[k]) / total) * self.entropy(d[k])
-            split_info += -(len(d[k]) / total) * math.log2((len(d[k]) / total))
-        #print(c_e,split_info)
-        return (c_e, split_info)
+
 
     def build(self, root): # build
         child = self.split(root) 
@@ -185,8 +196,8 @@ if __name__ == '__main__':
     for row in csv.DictReader(f):
         count += 1
         def train_test(o):
-            
-            #o.write(row['city']+'\t')
+            o.write(row['customer_id']+'\t')
+            o.write(row['city']+'\t')
             #o.write(row['state_province']+'\t')
             o.write(row['country']+'\t')
             #o.write(row['customer_region_id']+'\t')
@@ -210,23 +221,22 @@ if __name__ == '__main__':
 ##                o.write('high_income'+'\t')
 
             
-            o.write(row['gender']+'\t')
+            o.write('sex'+row['gender']+'\t')
             o.write(row['marital_status']+'\t')
 
-            #o.write(row['total_children']+'\t')
-            #o.write(row['num_children_at_home']+'\t')
-            
+            o.write('t'+row['total_children']+'\t')
+            o.write('h'+row['num_children_at_home']+'\t')
             o.write(row['education']+'\t')
             
-            if int(row['total_children']) <=7 :
-                o.write('total_children_low'+'\t')
-            else:
-                o.write('total_children_high'+'\t')
-                
-            if int(row['num_children_at_home']) <=2 :
-                o.write('at_home_low'+'\t')
-            else:
-                o.write('at_home_high'+'\t')
+##            if int(row['total_children']) <=3 :
+##                o.write('total_children_low'+'\t')
+##            else:
+##                o.write('total_children_high'+'\t')
+##                
+##            if int(row['num_children_at_home']) <=2 :
+##                o.write('at_home_low'+'\t')
+##            else:
+##                o.write('at_home_high'+'\t')
             
 ##            if row['education'] == 'Partial High School' or row['education'] == 'High School Degree' or row['education'] == 'Partial College':
 ##                o.write('non_college'+'\t')
@@ -234,8 +244,9 @@ if __name__ == '__main__':
 ##                o.write('college'+'\t')
                 
             o.write(row['member_card']+'\n')#target
+            
         
-        if count > 10281*0.70:
+        if count > 10281*0.7:
             train_test(test)
             #train_test(train)
         else:
@@ -255,7 +266,7 @@ if __name__ == '__main__':
     n.close()
     
     parser = argparse.ArgumentParser()
-    parser.add_argument('-f', '--file', dest='data', type=argparse.FileType('r'), default="train.txt")
+    parser.add_argument('-f', '--file', dest='data', type=argparse.FileType('r'), default="data.txt")
     args = parser.parse_args()
     matrix = []
     lines = args.data.readlines()
@@ -265,6 +276,6 @@ if __name__ == '__main__':
     
     C45tree = Tree(matrix) #build tree
     C45tree.output('tree.txt')
-    C45tree.test(C45tree.root,"test.txt")
+    C45tree.test(C45tree.root,"data_test.txt")
 
     print('done')
