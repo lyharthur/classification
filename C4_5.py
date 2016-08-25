@@ -46,20 +46,23 @@ class Tree:
             return res
         for attr in node.attribute:
             e_s = self.entropy(node.sample)
-            print(e_s,'e_s')
+            #print(e_s,attr)
+            
             if e_s == 0:
                 return res
+            
             d = self.classify(node.sample, attr) #attribute classify  return dict
             c = self.conditional_entropy(node.sample, d)
-            if c[1] != 0:   ## HERE!
+            
+            if c[1] != 0 :   ## HERE!
                 gain_ratio = (e_s - c[0]) / c[1] #Gain_ratio = (Entropy - condition Entropy) / split info
-                print(attr ,(e_s ,c[0]), c[1],gain_ratio,gain_max)
-                if gain_ratio >= gain_max:
+                #print(attr ,(e_s ,c[0]),(e_s - c[0]) , c[1],gain_ratio,gain_max)
+                if gain_ratio >= gain_max  :
                     gain_max = gain_ratio
                     gain_max_attr = attr
                     gain_max_dict = d
             else:
-                print(attr,'max')
+                #print(attr,'max')
                 gain_max_attr = attr
                 gain_max_dict = d
                 break
@@ -67,7 +70,6 @@ class Tree:
         used_attr = node.attribute[:]
         #print(used_attr,gain_max_attr)
         used_attr.remove(gain_max_attr)
-
         
         for (k, v) in gain_max_dict.items():
             res.append(Node(v, used_attr, gain_max_attr, k))
@@ -88,24 +90,28 @@ class Tree:
                 sample[key] = 1
         entropy_s = 0
         for k in sample:
-            print(sample,sample[k],k,len(index_list))
+            #print(sample,sample[k],k,len(index_list))
             entropy_s += -(sample[k] / len(index_list)) * math.log2(sample[k] / len(index_list))
-        print(entropy_s,'in_e')
+        #print(entropy_s,'in_e')
         return entropy_s
     
     def conditional_entropy(self, select_row, d):
-        c_e = 0
+        info = 0
         total = len(select_row)
         split_info = 0
-        
+        #print(total)
+        count = 0
         for k in d:
-            c_e += (len(d[k]) / total) * self.entropy(d[k])
-            print(c_e,'inc_e',k)
-
-            split_info += (len(d[k]) / total) * math.log2((len(d[k]) / total))
+            info += (len(d[k]) / total) * self.entropy(d[k])
+            if len(d[k]) == 1:
+                count += 1
+            #print('rr',len(d[k]))
+            if count == 10:
+                return (0,100)
+            split_info += -(len(d[k]) / total) * math.log2((len(d[k]) / total))
             
-        #print(c_e,-split_info)
-        return (c_e, -split_info)
+        
+        return (info, split_info)
     
     def classify(self, select_row, column):
         res = {}
@@ -196,15 +202,15 @@ if __name__ == '__main__':
     for row in csv.DictReader(f):
         count += 1
         def train_test(o):
-            o.write(row['customer_id']+'\t')
-            o.write(row['city']+'\t')
+            #o.write(row['customer_id']+'\t')
+            #o.write(row['city']+'\t')
             #o.write(row['state_province']+'\t')
-            o.write(row['country']+'\t')
+            #o.write(row['country']+'\t')
             #o.write(row['customer_region_id']+'\t')
             
             
             #o.write(row['age']+'\t')
-            o.write(row['year_income']+'\t')
+            #o.write(row['year_income']+'\t')
             
             if int(row['age']) < 45:#row['age']
                 o.write('age_young'+'\t')
@@ -213,35 +219,35 @@ if __name__ == '__main__':
             else:
                 o.write('age_old'+'\t')
                 
-##            if int(row['year_income']) <= 20000:#row['year_income']
-##                o.write('low_income'+'\t')
-##            elif int(row['year_income'])> 20000 and int(row['year_income']) >= 100000:
-##                o.write('mid_income'+'\t')
-##            else:
-##                o.write('high_income'+'\t')
+            if int(row['year_income']) <= 20000:#row['year_income']
+                o.write('low_income'+'\t')
+            elif int(row['year_income'])> 20000 and int(row['year_income']) >= 80000:
+                o.write('mid_income'+'\t')
+            else:
+                o.write('high_income'+'\t')
 
             
             o.write('sex'+row['gender']+'\t')
             o.write(row['marital_status']+'\t')
 
-            o.write('t'+row['total_children']+'\t')
-            o.write('h'+row['num_children_at_home']+'\t')
-            o.write(row['education']+'\t')
+            #o.write('t'+row['total_children']+'\t')
+            #o.write('h'+row['num_children_at_home']+'\t')
+            #o.write(row['education']+'\t')
             
-##            if int(row['total_children']) <=3 :
-##                o.write('total_children_low'+'\t')
-##            else:
-##                o.write('total_children_high'+'\t')
-##                
-##            if int(row['num_children_at_home']) <=2 :
-##                o.write('at_home_low'+'\t')
-##            else:
-##                o.write('at_home_high'+'\t')
+            if int(row['total_children']) <=4 :
+                o.write('total_children_low'+'\t')
+            else:
+                o.write('total_children_high'+'\t')
+                
+            if int(row['num_children_at_home']) <=2 :
+                o.write('at_home_low'+'\t')
+            else:
+                o.write('at_home_high'+'\t')
             
-##            if row['education'] == 'Partial High School' or row['education'] == 'High School Degree' or row['education'] == 'Partial College':
-##                o.write('non_college'+'\t')
-##            else:
-##                o.write('college'+'\t')
+            if row['education'] == 'Partial High School' or row['education'] == 'High School Degree' or row['education'] == 'Partial College':
+                o.write('non_college'+'\t')
+            else:
+                o.write('college'+'\t')
                 
             o.write(row['member_card']+'\n')#target
             
@@ -266,7 +272,7 @@ if __name__ == '__main__':
     n.close()
     
     parser = argparse.ArgumentParser()
-    parser.add_argument('-f', '--file', dest='data', type=argparse.FileType('r'), default="data.txt")
+    parser.add_argument('-f', '--file', dest='data', type=argparse.FileType('r'), default="train.txt")
     args = parser.parse_args()
     matrix = []
     lines = args.data.readlines()
@@ -276,6 +282,7 @@ if __name__ == '__main__':
     
     C45tree = Tree(matrix) #build tree
     C45tree.output('tree.txt')
-    C45tree.test(C45tree.root,"data_test.txt")
+    C45tree.test(C45tree.root,"test.txt")
 
     print('done')
+
