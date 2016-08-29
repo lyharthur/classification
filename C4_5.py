@@ -2,6 +2,7 @@ import math
 import argparse
 import csv
 import time
+from collections import defaultdict
 
 
 class Node:
@@ -51,7 +52,7 @@ class Tree:
             if e_s == 0:
                 return res
             
-            d = self.classify(node.sample, attr) #attribute classify  return dict
+            d = self.classify(node.sample, attr) #attribute classify  ;return dict
             c = self.conditional_entropy(node.sample, d)
             
             if c[1] != 0 :   ## HERE!
@@ -109,8 +110,6 @@ class Tree:
             if count == 10:
                 return (0,100)
             split_info += -(len(d[k]) / total) * math.log2((len(d[k]) / total))
-            
-        
         return (info, split_info)
     
     def classify(self, select_row, column):
@@ -126,12 +125,12 @@ class Tree:
 
 
     def build(self, root): # build
-        child = self.split(root) 
+        child = self.split(root)
         root.child = child
-        if len(child) != 0:
+        #print(root.value)
+        if len(child) != 0  :
             for i in child:
                 self.build(i)
-
 
     def output(self ,filename):
         o = open(filename,'w')
@@ -149,16 +148,47 @@ class Tree:
                 o.write('  '*lv + node.value+'\n')
                 self.printTree(node,lv+1,o)
         else:
-            #print('  '*lv +self.matrix[root.sample[0]][self.col - 1])
-            o.write('  '*lv +self.matrix[root.sample[0]][self.col - 1]+'\n')
+            #print('  '*lv + )
+            d = defaultdict(int)
+            for i in range(len(root.sample)) :         
+                #print(root.sample)
+                #print(self.matrix[root.sample[i]])
+                d[self.matrix[root.sample[i]][-1]] += 1
+            #print(d)    
+            #print(max(d.keys(), key=lambda k: d[k]))
+            self.matrix[root.sample[0]][self.col - 1] = max(d.keys(), key=lambda k: d[k])
+            o.write('  '*lv + max(d.keys(), key=lambda k: d[k])+'\n')
+            #print(self.matrix[root.sample[0]][-1])
             #self.matrix[root.sample[0]],
             #print(self.root.value) #, self.matrix[root.sample[0]]
 
 
+    def purning(self,root):
+        if root.child:
+            a = []
+            k = ''
+            for node in root.child :
+                k =  self.purning(node)
+                if k != None :
+                    a.append(k) 
+            if self.all_same(a) and len(a) > 1:
+                #print(a)
+                #print(root.parent_attr)
+                root.child = None
+                return k
+            elif len(a) == 1:
+                return k
+        else:
+            return self.matrix[root.sample[0]][self.col - 1]
+
+    
+    def all_same(self,items):
+        return all(x == items[0] for x in items)
+        
+    
 
     def test(self,root,filename):
         test = open(filename,'r')
-
         match = 0
         notmatch = 0
         unknown = 0
@@ -170,8 +200,7 @@ class Tree:
                     for node in root.child:
                         #print(root.child)
                         if node.value in dataline:
-                           return check_node(node,dataline)
-                               
+                           return check_node(node,dataline)                    
                 else:
                     if self.matrix[root.sample[0]][self.col - 1] == dataline[-1]:
                         #print(dataline[-1])
@@ -187,7 +216,7 @@ class Tree:
                 notmatch += 1
             else :
                 unknown += 1
-        print('match: ' + str(match) + ' not match : ' + str(notmatch) + ' unknown : ' + str(unknown))
+        print('match: ' + str(match) + ', not match : ' + str(notmatch) + ' unknown : ' + str(unknown))
         print('Acc: '+str(match/(match+notmatch+unknown)))
 
 
@@ -212,17 +241,13 @@ if __name__ == '__main__':
             #o.write(row['age']+'\t')
             #o.write(row['year_income']+'\t')
             
-            if int(row['age']) < 45:#row['age']
+            if int(row['age']) < 40:#row['age']
                 o.write('age_young'+'\t')
-            elif int(row['age'])>= 45 and int(row['age']) < 80:
-                o.write('age_mid'+'\t')
             else:
                 o.write('age_old'+'\t')
                 
             if int(row['year_income']) <= 20000:#row['year_income']
                 o.write('low_income'+'\t')
-            elif int(row['year_income'])> 20000 and int(row['year_income']) >= 80000:
-                o.write('mid_income'+'\t')
             else:
                 o.write('high_income'+'\t')
 
@@ -234,7 +259,7 @@ if __name__ == '__main__':
             #o.write('h'+row['num_children_at_home']+'\t')
             #o.write(row['education']+'\t')
             
-            if int(row['total_children']) <=4 :
+            if int(row['total_children']) <= 4 :
                 o.write('total_children_low'+'\t')
             else:
                 o.write('total_children_high'+'\t')
@@ -281,8 +306,10 @@ if __name__ == '__main__':
         matrix.append(line.split('\t'))
     
     C45tree = Tree(matrix) #build tree
-    C45tree.output('tree.txt')
+    C45tree.output('tree_nonPurn.txt')
+    #C45tree.test(C45tree.root,"test.txt")
+    C45tree.purning(C45tree.root)
     C45tree.test(C45tree.root,"test.txt")
-
+    C45tree.output('tree_Purn.txt')
+    
     print('done')
-
